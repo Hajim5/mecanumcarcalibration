@@ -1,0 +1,40 @@
+//TESTING REQUIRED
+//THIS PART PUT IN main.cpp to call the function from the library
+
+#include <Arduino.h>
+#include "FavoriotCar.h"
+
+// Configuration
+const char* WIFI_SSID = "YOUR_WIFI_SSID";
+const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
+const char* FAVORIOT_API_KEY = "YOUR_FAVORIOT_API_KEY";
+const char* DEVICE_ID = "carDevice@yourusername"; // Your Mecanum Car Device ID
+
+// Create instance of the library (updates every 3000ms by default)
+FavoriotCar telemetry(WIFI_SSID, WIFI_PASS, FAVORIOT_API_KEY, DEVICE_ID, 3000);
+
+// Mock variables representing your Keyestudio car telemetry states
+int speedFL = 150;
+int speedFR = 150;
+int speedRL = 150;
+int speedRR = 150;
+String currentMove = "Forward";
+float batteryVoltage = 12.1;
+
+void setup() {
+    Serial.begin(115200);
+    
+    // Start library & WiFi
+    telemetry.begin();
+    
+    // Initialize your Keyestudio motor driver pins here...
+}
+
+void loop() {
+    // 1. Your robot movement/control logic goes here
+    // Example: Read line sensors, update motor PWM values, etc.
+    
+    // 2. Simply feed current robot values to the library function.
+    // The library handles its own non-blocking timer internally.
+    telemetry.sendTelemetry(speedFL, speedFR, speedRL, speedRR, currentMove, batteryVoltage);
+}
