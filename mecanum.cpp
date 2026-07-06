@@ -363,3 +363,159 @@ void rightmove(int target)
     mecanumCar.Stop();
     delay(800);
 }
+
+bool grab(String targetColor)
+{
+    // Open gripper
+    myservo.write(7);
+    delay(300);
+
+    speed_Upper_L = 37;
+    speed_Lower_L = 37;
+    speed_Upper_R = 28;
+    speed_Lower_R = 29;
+
+    while (true)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        // -----------------------------
+        // LINE FOLLOWING
+        // -----------------------------
+        if (!left && middle && !right)
+        {
+            mecanumCar.Advance();
+        }
+        else if (left)
+        {
+            mecanumCar.Turn_Left();
+        }
+        else if (right)
+        {
+            mecanumCar.Turn_Right();
+        }
+        else
+        {
+            mecanumCar.Advance();
+        }
+
+        // -----------------------------
+        // ULTRASONIC
+        // -----------------------------
+        digitalWrite(TRIG_PIN, LOW);
+        delayMicroseconds(2);
+
+        digitalWrite(TRIG_PIN, HIGH);
+        delayMicroseconds(10);
+
+        digitalWrite(TRIG_PIN, LOW);
+
+        long duration = pulseIn(ECHO_PIN, HIGH);
+
+        if (duration == 0)
+            continue;
+
+        long distance = duration * 0.034 / 2;
+
+        Serial.print("Distance: ");
+        Serial.print(distance);
+        Serial.println(" cm");
+
+        if (distance <= 4)
+        {
+            mecanumCar.Stop();
+            Serial.println("Object detected!");
+            break;
+        }
+
+        delay(30);
+    }
+
+    // -----------------------------
+    // COLOR DETECTION
+    // -----------------------------
+    digitalWrite(S2, LOW);
+    digitalWrite(S3, LOW);
+    redFrequency = pulseIn(SENSOR_OUT, LOW);
+    delay(20);
+
+    digitalWrite(S2, HIGH);
+    digitalWrite(S3, HIGH);
+    greenFrequency = pulseIn(SENSOR_OUT, LOW);
+    delay(20);
+
+    digitalWrite(S2, LOW);
+    digitalWrite(S3, HIGH);
+    blueFrequency = pulseIn(SENSOR_OUT, LOW);
+    delay(20);
+
+    Serial.print("RED   : ");
+    Serial.println(redFrequency);
+
+    Serial.print("GREEN : ");
+    Serial.println(greenFrequency);
+
+    Serial.print("BLUE : ");
+    Serial.println(blueFrequency);
+
+    // -----------------------------
+    // COLOR CLASSIFICATION
+    // -----------------------------
+    String detectColour = "UNKNOWN";
+
+    // No object / ambient light
+    if (redFrequency > 4000 &&
+        greenFrequency > 4000 &&
+        blueFrequency > 4000)
+    {
+        detectColour = "UNKNOWN";
+    }
+    // Blue
+    else if (blueFrequency < redFrequency &&
+             blueFrequency < greenFrequency)
+    {
+        detectColour = "BLUE";
+    }
+    // Red or Yellow
+    else if (redFrequency < blueFrequency)
+    {
+        if (abs(redFrequency - greenFrequency) < 250)
+        {
+            detectColour = "YELLOW";
+        }
+        else if (redFrequency < greenFrequency)
+        {
+            detectColour = "RED";
+        }
+    }
+
+    Serial.print("Detected Color : ");
+    Serial.println(detectColour);
+
+    Serial.print("Target Color   : ");
+    Serial.println(targetColor);
+
+    // -----------------------------
+    // CHECK TARGET COLOR
+    // -----------------------------
+    if (detectColour == targetColor)
+    {
+        Serial.println("Correct color!");
+
+        myservo.write(60);     // Close gripper
+        delay(1000);
+
+        return true;
+    }
+    else
+    {
+        Serial.println("Wrong color!");
+
+        myservo.write(7);      // Keep gripper open
+        delay(300);
+
+        return false;
+    }
+}
