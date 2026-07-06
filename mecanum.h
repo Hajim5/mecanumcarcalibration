@@ -12,16 +12,9 @@ void turnLeft90();
 void turnLeft90_O();
 void turn180_L();
 void turn180_LO();
-
-//Calibrated
 void leftmove(int target);
 void leftmove_O(int target);
-
-//Uncalibrated
 void rightmove();
-
-//--------------------------------------------------
-//Unfinished part
-//--------------------------------------------------
+bool grab(String targetColor);
 
 #endif
