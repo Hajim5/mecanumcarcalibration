@@ -97,7 +97,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionBlue();
+                    fullMission();
                     missionRunning = false;
                 }
                 break;
@@ -106,7 +106,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionRed();
+                    fullMission();
                     missionRunning = false;
                 }
                 break;
@@ -114,7 +114,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow();
+                    fullMission();
                     missionRunning = false;
                 }
                 break;
@@ -126,14 +126,47 @@ void loop()
         irrecv.resume();
     }
 }
-void runMissionBlue()
+void fullMission()
 {
-    moveForwardIntersections(5);
+    forward(5);
     grab("BLUE");
-    turn180_RO();
-    moveForwardIntersections(7);
-    mecanumCar.Stop();
-    myservo.write(7);
-    moveback(1);
-    turn180_R();
+    turnRight90_O();
+    turnRight90_O();
+    forward(5);
+    forward2(2);
+    delay(1000);
+    moveback(2);
+    turnRight90();
+    turnRight90();
+    //add
+    forward(2);
+    moveright(2);
+    forward(2);
+    grab("RED");
+    turnRight90_O();
+    turnRight90_O();
+    forward(1);
+    moveright(2);
+    forward(3);
+    forward2(2);
+    delay(1000);
+    moveback(2);
+    turnRight90();
+    turnRight90();
+    //add
+    forward(2);
+    moveleft(2);
+    forward(2);
+    grab("YELLOW");
+    turnRight90_O();
+    turnRight90_O();
+    forward(1);
+    moveleft_O(2);
+    forward(4);
+    forward2(2);
+    delay(1000);
+    moveback(2);
+    turnRight90();
+    turnRight90();
 }
+
