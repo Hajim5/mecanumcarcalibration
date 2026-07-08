@@ -519,3 +519,46 @@ bool grab(String targetColor)
         return false;
     }
 }
+
+void moveright_O(int target)
+{
+    int counter = 0;
+    bool onMarker = false;
+    speed_Upper_L = 54;
+    speed_Lower_L = 41;
+    speed_Upper_R = 57;
+    speed_Lower_R = 46;
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        mecanumCar.R_Move();
+
+        // Detect center line crossing
+        if(!left && !middle && right)
+        {
+            if(!onMarker)
+            {
+                counter++;
+
+                Serial.print("Strafe Right Count: ");
+                Serial.println(counter);
+
+                onMarker = true;
+
+                if(counter >= target)
+                    break;
+            }
+        }
+        else
+        {
+            onMarker = false;
+        }
+    }
+
+    mecanumCar.Stop();
+    delay(400);
+}
