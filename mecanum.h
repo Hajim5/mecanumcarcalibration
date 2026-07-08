@@ -15,6 +15,7 @@ void turn180_LO();
 void leftmove(int target);
 void leftmove_O(int target);
 void rightmove();
+void rightmove_O();
 bool grab(String targetColor);
 
 #endif
