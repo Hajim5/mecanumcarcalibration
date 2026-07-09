@@ -32,9 +32,6 @@ int RECV_PIN = A3;
 // Usually the center sensor
 #define STOP_SENSOR SensorMiddle
 
-// =====================
-// NEW COUUNTER & TURN VARIABLES
-// =====================
 bool missionRunning = false;
 // USER ADJUSTABLE JUNCTION ALIGNMENT TIMES (CHANGE THESE)
 
@@ -47,33 +44,47 @@ extern uint8_t speed_Upper_R;
 extern uint8_t speed_Lower_R;
 
 const unsigned long OK_BUTTON = 0xFF02FD;//BLUE   #ok
-const unsigned long NO3_BUTTON = 0xFFB04F;//yellow   #3
-const unsigned long NO4_BUTTON = 0xFF30CF;//red  #4
+const unsigned long NO0_BUTTON = 0xFF4AB5;
+const unsigned long NO1_BUTTON = 0xFF38C7;
+const unsigned long NO2_BUTTON = 0xFF5AA5;
+const unsigned long NO3_BUTTON = 0xFFB04F;
+const unsigned long NO4_BUTTON = 0xFF30CF;
+const unsigned long NO5_BUTTON = 0xFF18E7;
+const unsigned long NO6_BUTTON = 0xFF7A85;
+const unsigned long NO7_BUTTON = 0xFF10EF;
 
-//Unassigned button
-const unsigned long NO1_BUTTON = 0xFFB04F;
-const unsigned long NO2_BUTTON = 0xFFB04F;
-const unsigned long NO5_BUTTON = 0xFFB04F;
-const unsigned long NO6_BUTTON = 0xFFB04F;
-const unsigned long NO7_BUTTON = 0xFFB04F;
+
+//unassigned button
 const unsigned long NO8_BUTTON = 0xFFB04F;
 const unsigned long NO9_BUTTON = 0xFFB04F;
-const unsigned long NO0_BUTTON = 0xFFB04F;
 
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
-void forward(); //NO1_Button
-void moveback(); //NO2_Button
-void moveright(); //NO3_Button
-void moveleft(); //NO4_Button
-void diagonalUpperRight(); //NO5_Button
-void diagonalUpperLeft(); //NO6_Button
-void diagonalLowerRight(); //NO7_Button
-void diagonalLowerLeft(); //NO8_Button
+void forward(int target); //NO1_Button
+void moveback(int target); //NO2_Button
+void moveright(int target); //NO3_Button
+void moveleft(int target); //NO4_Button
+void diagonalUpperRight(int target); //NO5_Button
+void diagonalUpperLeft(int target); //NO6_Button
+void diagonalLowerRight(int target); //NO7_Button
+void diagonalLowerLeft(int target); //NO8_Button
 void turnRight90(); //NO9_Button
 void turnLeft90(); //NO0_Button
 
+/*
+ * @brief Initializes all hardware used by the robot.
+ *
+ * Configures:
+ * - Mecanum car driver
+ * - Line tracking sensors
+ * - Servo motor
+ * - Color sensor
+ * - Ultrasonic sensor
+ * - IR receiver
+ *
+ * Runs only once when the Arduino starts.
+ */
 void setup()
 {
     Serial.begin(9600);
@@ -103,6 +114,14 @@ void setup()
     Serial.println("Ready");
 }
 
+/*
+ * @brief Main program loop.
+ *
+ * Continuously waits for an IR remote command.
+ * Once a button is received, executes the corresponding
+ * movement function while preventing multiple commands
+ * from running simultaneously.
+ */
 void loop()
 {
     if (irrecv.decode(&results))
@@ -204,6 +223,18 @@ void loop()
     }
 }
 
+/*
+ * @brief Moves the robot forward while following a line.
+ *
+ * The robot continuously follows the center line using
+ * three IR sensors. Every time a junction is detected,
+ * the junction counter increases.
+ *
+ * Movement stops after reaching the requested number
+ * of junctions.
+ *
+ * @param target Number of junctions to pass before stopping.
+ */
 void forward(int target)
 {
     int counter = 0;
@@ -252,6 +283,15 @@ void forward(int target)
     delay(400);
 }
 
+/*
+ * @brief Moves the robot backward.
+ *
+ * The robot travels backward while counting junctions.
+ * A timeout is included to prevent the robot from
+ * reversing forever if a junction cannot be detected.
+ *
+ * @param target Number of junctions to move backward.
+ */
 void moveback(int target)
 {
     int counter = 0;
@@ -303,6 +343,16 @@ void moveback(int target)
     delay(400);
 }
 
+/*
+ * @brief Strafes the robot to the right.
+ *
+ * Uses the mecanum wheels to move sideways while
+ * counting line markers detected by the sensors.
+ *
+ * Stops after reaching the requested number of markers.
+ *
+ * @param target Number of markers to pass.
+ */
 void moveright(int target)
 {
     int counter = 0;
@@ -339,6 +389,16 @@ void moveright(int target)
     delay(400);
 }
 
+/*
+ * @brief Strafes the robot to the left.
+ *
+ * Uses the mecanum wheels to move sideways while
+ * counting line markers detected by the sensors.
+ *
+ * Stops after reaching the requested number of markers.
+ *
+ * @param target Number of markers to pass.
+ */
 void moveleft(int target)
 {
     int counter = 0;
@@ -376,6 +436,236 @@ void moveleft(int target)
     delay(400);
 }
 
+/*
+ * @brief Moves the robot diagonally toward the upper-right direction.
+ *
+ * This function uses the mecanum wheels to move the robot diagonally
+ * while counting line markers using the line tracking sensors.
+ *
+ * During the movement, the robot continuously reads the left, middle,
+ * and right sensors. When the right sensor detects a new line marker,
+ * the marker counter is incremented. The function continues moving
+ * until the specified number of markers has been reached.
+ *
+ * The 'onMarker' flag prevents the same marker from being counted
+ * multiple times while the robot is still passing over it.
+ *
+ * @param target Number of line markers to detect before stopping.
+ */
+void diagonalUpperRight(int target)
+{
+    int counter = 0;
+    bool onMarker = false;
+
+    // Motor speed calibration
+    speed_Upper_L = 60;
+    speed_Lower_L = 60;
+    speed_Upper_R = 60;
+    speed_Lower_R = 60;
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        // Move diagonally to the upper-right
+        mecanumCar.RU_Move();
+
+        // Detect a new marker
+        if(!left && !middle && right)
+        {
+            if(!onMarker)
+            {
+                counter++;
+                onMarker = true;
+
+                if(counter >= target)
+                    break;
+            }
+        }
+        else
+        {
+            onMarker = false;
+        }
+    }
+
+    mecanumCar.Stop();
+    delay(400);
+}
+
+/*
+ * @brief Moves the robot diagonally toward the upper-left direction.
+ *
+ * This function uses the mecanum wheels to move the robot diagonally
+ * while counting line markers using the line tracking sensors.
+ *
+ * During the movement, the robot continuously reads the left, middle,
+ * and right sensors. When the left sensor detects a new line marker,
+ * the marker counter is incremented. The function continues moving
+ * until the specified number of markers has been reached.
+ *
+ * The 'onMarker' flag prevents the same marker from being counted
+ * multiple times while the robot is still passing over it.
+ *
+ * @param target Number of line markers to detect before stopping.
+ */
+void diagonalUpperLeft(int target)
+{
+    int counter = 0;
+    bool onMarker = false;
+
+    speed_Upper_L = 60;
+    speed_Lower_L = 60;
+    speed_Upper_R = 60;
+    speed_Lower_R = 60;
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        mecanumCar.LU_Move();
+
+        if(left && !middle && !right)
+        {
+            if(!onMarker)
+            {
+                counter++;
+                onMarker = true;
+
+                if(counter >= target)
+                    break;
+            }
+        }
+        else
+        {
+            onMarker = false;
+        }
+    }
+
+    mecanumCar.Stop();
+    delay(400);
+}
+
+/*
+ * @brief Moves the robot diagonally toward the lower-right direction.
+ *
+ * This function uses the mecanum wheels to move the robot diagonally
+ * in reverse while counting line markers using the line tracking sensors.
+ *
+ * During the movement, the robot continuously reads the left, middle,
+ * and right sensors. When the right sensor detects a new line marker,
+ * the marker counter is incremented. The function continues moving
+ * until the specified number of markers has been reached.
+ *
+ * The 'onMarker' flag prevents the same marker from being counted
+ * multiple times while the robot is still passing over it.
+ *
+ * @param target Number of line markers to detect before stopping.
+ */
+void diagonalLowerRight(int target)
+{
+    int counter = 0;
+    bool onMarker = false;
+
+    speed_Upper_L = 60;
+    speed_Lower_L = 60;
+    speed_Upper_R = 60;
+    speed_Lower_R = 60;
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        mecanumCar.RD_Move();
+
+        if(!left && !middle && right)
+        {
+            if(!onMarker)
+            {
+                counter++;
+                onMarker = true;
+
+                if(counter >= target)
+                    break;
+            }
+        }
+        else
+        {
+            onMarker = false;
+        }
+    }
+
+    mecanumCar.Stop();
+    delay(400);
+}
+
+/*
+ * @brief Moves the robot diagonally toward the lower-left direction.
+ *
+ * This function uses the mecanum wheels to move the robot diagonally
+ * in reverse while counting line markers using the line tracking sensors.
+ *
+ * During the movement, the robot continuously reads the left, middle,
+ * and right sensors. When the left sensor detects a new line marker,
+ * the marker counter is incremented. The function continues moving
+ * until the specified number of markers has been reached.
+ *
+ * The 'onMarker' flag prevents the same marker from being counted
+ * multiple times while the robot is still passing over it.
+ *
+ * @param target Number of line markers to detect before stopping.
+ */
+void diagonalLowerLeft(int target)
+{
+    int counter = 0;
+    bool onMarker = false;
+
+    speed_Upper_L = 60;
+    speed_Lower_L = 60;
+    speed_Upper_R = 60;
+    speed_Lower_R = 60;
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        mecanumCar.LD_Move();
+
+        if(left && !middle && !right)
+        {
+            if(!onMarker)
+            {
+                counter++;
+                onMarker = true;
+
+                if(counter >= target)
+                    break;
+            }
+        }
+        else
+        {
+            onMarker = false;
+        }
+    }
+
+    mecanumCar.Stop();
+    delay(400);
+}
+
+/*
+ * @brief Rotates the robot approximately 90° clockwise.
+ *
+ * The robot first performs a blind turn for a fixed
+ * duration, then uses the line sensors to accurately
+ * align itself with the next line.
+ */
 void turnRight90()
 {
     speed_Upper_L = 66;
@@ -405,6 +695,13 @@ void turnRight90()
     delay(400);
 }
 
+/*
+ * @brief Rotates the robot approximately 90° counter-clockwise.
+ *
+ * The robot first performs a blind turn for a fixed
+ * duration, then fine-tunes its alignment using the
+ * line sensors until the new line is detected.
+ */
 void turnLeft90()
 {
     speed_Upper_L = 67;
@@ -434,3 +731,4 @@ void turnLeft90()
     mecanumCar.Stop();
     delay(400);
 }
+
