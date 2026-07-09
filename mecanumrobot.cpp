@@ -124,100 +124,14 @@ void loop()
 
 void runMissionBlue()
 {
-    forward(5);
-    grab("BLUE");
-    turnRight90_O();
-    turnRight90_O();
-    forward(7);
-    for(int pos = 80; pos >= 7; pos--)
-    {
-        myservo.write(pos);
-        delay(20);
-    }
-    delay(1000);
-    moveback(2);
-    turnRight90();
-    turnRight90();
-    //add
-    forward(2);
-    moveright(2);
-    //forward(2);
-    grab("RED");
-    turnRight90_O();
-    turnRight90_O();
-    forward(1);
-    moveright(2);
-    forward(6);
-    for(int pos = 80; pos >= 7; pos--)
-    {
-        myservo.write(pos);
-        delay(20);
-    }
-    delay(1000);
-    moveback(2);
-    turnRight90();
-    turnRight90();
-    //add
-    forward(2);
-    moveleft(2);
-    forward(2);
-    grab("YELLOW");
-    turnRight90_O();
-    turnRight90_O();
-    forward(1);
-    moveleft_O(2);
-    forward(6);
-    for(int pos = 80; pos >= 7; pos--)
-    {
-        myservo.write(pos);
-        delay(20);
-    }
-    delay(1000);
-    moveback(2);
-    turnRight90();
-    turnRight90();
 }
 
 void runMissionRed()
 {
-    forward(2);
-    moveright(2);
-    forward(2);
-    grab("RED");
-    turnRight90_O();
-    turnRight90_O();
-    forward(1);
-    moveright_O(2);
-    forward(4);
-    for(int pos = 80; pos >= 7; pos--)
-    {
-        myservo.write(pos);
-        delay(20);
-    }
-    delay(400);
-    moveback(2); //need to calibration 
-    turnRight90();
-    turnRight90();
 }
 
 void runMissionYellow()
 {
-    forward(3);
-    moveleft(2);
-    forward(2);
-    grab("YELLOW");
-    turnRight90_O();
-    turnRight90_O();
-    forward(1);
-    moveleft_O(2);
-    forward(6);
-    mecanumCar.Stop();
-    delay(1000);
-    myservo.write(7);
-    delay(1000);
-    moveback(1);
-    turnRight90();
-    turnRight90();
 }
 
 long getDistanceCM() {
@@ -226,10 +140,8 @@ long getDistanceCM() {
     digitalWrite(TRIG_PIN, HIGH);
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
-    
     long duration = pulseIn(ECHO_PIN, HIGH, 30000); // 30ms timeout
     if (duration == 0) return 999;                  // Return large number if no echo
-    
     long distance = duration * 0.034 / 2;           // Convert time to cm
     return distance;
 }
