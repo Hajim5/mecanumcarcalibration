@@ -2,9 +2,6 @@
 #include <MecanumCar_v2.h>
 #include <IRremote.h>
 #include <Servo.h>
-#include <SoftwareSerial.h>
-
-SoftwareSerial espSerial(11, 10);
 
 mecanumCar mecanumCar(3, 2);
 Servo myservo;
@@ -50,9 +47,18 @@ extern uint8_t speed_Upper_R;
 extern uint8_t speed_Lower_R;
 
 const unsigned long OK_BUTTON = 0xFF02FD;//BLUE   #ok
-const unsigned long NO0_BUTTON = 0xFF30CF;//red  #4
-const unsigned long NO1_BUTTON = 0xFFB04F;//yellow   #3
-//const unsigned long RESET_BUTTON = 0xFFB04F;//yellow   #3
+const unsigned long NO3_BUTTON = 0xFFB04F;//yellow   #3
+const unsigned long NO4_BUTTON = 0xFF30CF;//red  #4
+
+//Unassigned button
+const unsigned long NO1_BUTTON = 0xFFB04F;
+const unsigned long NO2_BUTTON = 0xFFB04F;
+const unsigned long NO5_BUTTON = 0xFFB04F;
+const unsigned long NO6_BUTTON = 0xFFB04F;
+const unsigned long NO7_BUTTON = 0xFFB04F;
+const unsigned long NO8_BUTTON = 0xFFB04F;
+const unsigned long NO9_BUTTON = 0xFFB04F;
+const unsigned long NO0_BUTTON = 0xFFB04F;
 
 IRrecv irrecv(RECV_PIN);
 decode_results results;
@@ -70,7 +76,7 @@ void turnLeft90(); //NO0_Button
 
 void setup()
 {
-    espSerial.begin(9600);
+    Serial.begin(9600);
 
     mecanumCar.Init();
 
@@ -139,7 +145,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow();  
+                    moveleft();  
                     missionRunning = false;
                 }
                 break;
@@ -147,7 +153,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow();  
+                    diagonalUpperRight();  
                     missionRunning = false;
                 }
                 break;
@@ -155,7 +161,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow();   
+                    diagonalUpperLeft();   
                     missionRunning = false;
                 }
                 break;
@@ -163,7 +169,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow(); 
+                    diagonalLowerRight(); 
                     missionRunning = false;
                 }
                 break;
@@ -171,7 +177,7 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow();  
+                    diagonalLowerLeft();  
                     missionRunning = false;
                 }
                 break;
@@ -179,7 +185,15 @@ void loop()
                 if (!missionRunning)
                 {
                     missionRunning = true;
-                    runMissionYellow();   
+                    turnRight90();   
+                    missionRunning = false;
+                }
+                break;
+            case NO0_BUTTON:
+                if (!missionRunning)
+                {
+                    missionRunning = true;
+                    turnLeft90();   
                     missionRunning = false;
                 }
                 break;
@@ -188,18 +202,6 @@ void loop()
         }
         irrecv.resume();
     }
-}
-
-long getDistanceCM() {
-    digitalWrite(TRIG_PIN, LOW);
-    delayMicroseconds(2);
-    digitalWrite(TRIG_PIN, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(TRIG_PIN, LOW);
-    long duration = pulseIn(ECHO_PIN, HIGH, 30000); // 30ms timeout
-    if (duration == 0) return 999;                  // Return large number if no echo
-    long distance = duration * 0.034 / 2;           // Convert time to cm
-    return distance;
 }
 
 void forward(int target)
@@ -250,12 +252,100 @@ void forward(int target)
     delay(400);
 }
 
+void moveback(int target)
+{
+    int counter = 0;
+    bool onJunction = false;
+
+    speed_Upper_L = 39; //38
+    speed_Lower_L = 44; //43
+    speed_Upper_R = 30;
+    speed_Lower_R = 35;
+    
+    // Record the exact time the movement started
+    unsigned long startTime = millis();
+    // The loop will exit if it hits the target junctions OR if 200 milliseconds (0.2s) pass
+    while((counter < target) && (millis() - startTime < 1200))
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+        if(left && middle && right)
+        {
+            if(!onJunction)
+            {
+                counter++;
+                onJunction = true;
+            }
+            mecanumCar.Back();
+        }
+        else
+        {
+            onJunction = false;
+            if(!left && middle && !right)
+                mecanumCar.Back();
+            else if(left && !middle && !right)
+                mecanumCar.Turn_Left();
+            else if(!left && !middle && right)
+                mecanumCar.Turn_Right();
+            else if(left && middle && !right)
+                mecanumCar.Turn_Left();
+            else if(!left && middle && right)
+                mecanumCar.Turn_Right();
+            else if(left && !middle && right)
+                mecanumCar.Back();
+            else if(!left && !middle && !right)
+                mecanumCar.Back();
+        }
+    }
+
+    mecanumCar.Stop();
+    delay(400);
+}
+
+void moveright(int target)
+{
+    int counter = 0;
+    bool onMarker = false;
+
+    speed_Upper_L = 64;
+    speed_Lower_L = 52;
+    speed_Upper_R = 64;
+    speed_Lower_R = 46;
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+        mecanumCar.R_Move();
+        // Detect center line crossing
+        if(!left && !middle && right)
+        {
+            if(!onMarker)
+            {
+                counter++;
+                onMarker = true;
+                if(counter >= target)
+                    break;
+            }
+        }
+        else
+        {
+            onMarker = false;
+        }
+    }
+    mecanumCar.Stop();
+    delay(400);
+}
+
 void moveleft(int target)
 {
     int counter = 0;
     bool onMarker = false;
-    speed_Upp
-    speed_Lower_L = 52;//50
+
+    speed_Upper_L = 52; 
+    speed_Lower_L = 52;
     speed_Upper_R = 60;
     speed_Lower_R = 60;
 
@@ -264,21 +354,14 @@ void moveleft(int target)
         bool left   = digitalRead(SensorLeft);
         bool middle = digitalRead(SensorMiddle);
         bool right  = digitalRead(SensorRight);
-
         mecanumCar.L_Move();
-
         // Detect center line crossing
         if(left && !middle && !right)
         {
             if(!onMarker)
             {
                 counter++;
-
-                Serial.print("Strafe Left Count: ");
-                Serial.println(counter);
-
                 onMarker = true;
-
                 if(counter >= target)
                     break;
             }
@@ -322,111 +405,6 @@ void turnRight90()
     delay(400);
 }
 
-void moveright(int target)
-{
-    int counter = 0;
-    bool onMarker = false;
-
-    speed_Upper_L = 64;
-    speed_Lower_L = 52;//52
-    speed_Upper_R = 64;
-    speed_Lower_R = 46;
-
-    while(counter < target)
-    {
-        bool left   = digitalRead(SensorLeft);
-        bool middle = digitalRead(SensorMiddle);
-        bool right  = digitalRead(SensorRight);
-
-        mecanumCar.R_Move();
-
-        // Detect center line crossing
-        if(!left && !middle && right)
-        {
-            if(!onMarker)
-            {
-                counter++;
-
-                onMarker = true;
-
-                if(counter >= target)
-                    break;
-            }
-        }
-        else
-        {
-            onMarker = false;
-        }
-    }
-
-    mecanumCar.Stop();
-    delay(400);
-}
-
-void moveback(int target)
-{
-    int counter = 0;
-    bool onJunction = false;
-    speed_Upper_L = 39; //38
-    speed_Lower_L = 44; //43
-    speed_Upper_R = 30;
-    speed_Lower_R = 35;
-    
-    // Record the exact time the movement started
-    unsigned long startTime = millis();
-    
-    // The loop will exit if it hits the target junctions OR if 200 milliseconds (0.2s) pass
-    while((counter < target) && (millis() - startTime < 1200))
-    {
-        bool left   = digitalRead(SensorLeft);
-        bool middle = digitalRead(SensorMiddle);
-        bool right  = digitalRead(SensorRight);
-
-        if(left && middle && right)
-        {
-            if(!onJunction)
-            {
-                counter++;
-
-                Serial.print("Intersection: ");
-                Serial.println(counter);
-
-                onJunction = true;
-            }
-
-            mecanumCar.Back();
-        }
-        else
-        {
-            onJunction = false;
-
-            if(!left && middle && !right)
-                mecanumCar.Back();
-
-            else if(left && !middle && !right)
-                mecanumCar.Turn_Left();
-
-            else if(!left && !middle && right)
-                mecanumCar.Turn_Right();
-
-            else if(left && middle && !right)
-                mecanumCar.Turn_Left();
-
-            else if(!left && middle && right)
-                mecanumCar.Turn_Right();
-                
-            else if(left && !middle && right)
-                mecanumCar.Back();
-                
-            else if(!left && !middle && !right)
-                mecanumCar.Back();
-        }
-    }
-
-    mecanumCar.Stop();
-    delay(400);
-}
-
 void turnLeft90()
 {
     speed_Upper_L = 67;
@@ -455,14 +433,4 @@ void turnLeft90()
 
     mecanumCar.Stop();
     delay(400);
-}
-
-int readColor(bool s2, bool s3)
-{
-    digitalWrite(S2, s2);
-    digitalWrite(S3, s3);
-
-    delay(20);
-
-    return pulseIn(SENSOR_OUT, LOW, 30000);
 }
