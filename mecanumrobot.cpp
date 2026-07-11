@@ -27,6 +27,7 @@ int RECV_PIN = A3;
 #define TURN_BLIND_MS        300
 #define TURN_SPEED           60
 #define FOLLOW_SPEED         40
+#define BRAKE                20
 
 // Choose which sensor should detect the new line
 // Usually the center sensor
@@ -690,6 +691,14 @@ void turnRight90()
         if (!left && !middle && right)
             break;
     }
+    mecanumCar.Turn_Left();
+    delay(BRAKE);
+
+    speed_Lower_L = 66;
+    speed_Lower_R = 64;
+
+    mecanumCar.drift_right();
+    delay(100);
 
     mecanumCar.Stop();
     delay(400);
