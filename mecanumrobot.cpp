@@ -25,6 +25,7 @@ int RECV_PIN = A3;
 #define ECHO_PIN 13
 
 #define TURN_BLIND_MS        300
+#define TURN_BLIND_MS_LEFT   400
 #define TURN_SPEED           60
 #define FOLLOW_SPEED         40
 #define BRAKE                20
@@ -72,6 +73,8 @@ void diagonalLowerRight(int target); //NO7_Button
 void diagonalLowerLeft(int target); //NO8_Button
 void turnRight90(); //NO9_Button
 void turnLeft90(); //NO0_Button
+void turn180_R();
+void turn180_L();
 
 /*
  * @brief Initializes all hardware used by the robot.
@@ -736,7 +739,15 @@ void turnLeft90()
         if (left && !middle && !right)
             break;
     }
+    mecanumCar.Turn_Right();
+    delay(BRAKE);
 
+    speed_Lower_L = 66;
+    speed_Lower_R = 64;
+
+    mecanum.drift_left();
+    delay(100);
+    
     mecanumCar.Stop();
     delay(400);
 }
