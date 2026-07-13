@@ -79,7 +79,7 @@ void turn180_L();
 bool grab(String targetColor);
 void alignRobot();
 bool verifyAligment();
-
+void dropoff(int target);
 
 /*
  * @brief Initializes all hardware used by the robot.
@@ -852,4 +852,115 @@ bool verifyAlignment()
     }
 
     return true;
+}
+
+void dropoff(int target)
+{
+    int counter = 0;
+    bool onJunction = false;
+
+    Serial.println("===========================");
+    Serial.println("DROP-OFF MISSION");
+    Serial.println("===========================");
+
+    // ----------------------------------
+    // Driving Speed
+    // ----------------------------------
+
+    speed_Upper_L = 40;
+    speed_Lower_L = 40;
+    speed_Upper_R = 40;
+    speed_Lower_R = 40;
+
+    // ----------------------------------
+    // Move Until Target Junction
+    // ----------------------------------
+
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        // -----------------------------
+        // Junction Detection
+        // -----------------------------
+
+        if(left && middle && right)
+        {
+            if(!onJunction)
+            {
+                counter++;
+
+                Serial.print("Junction : ");
+                Serial.println(counter);
+
+                onJunction = true;
+
+                if(counter >= target)
+                {
+                    mecanumCar.Stop();
+                    break;
+                }
+            }
+
+            mecanumCar.Advance();
+        }
+        else
+        {
+            onJunction = false;
+
+            // -----------------------------
+            // Line Following
+            // -----------------------------
+
+            if(!left && middle && !right)
+            {
+                mecanumCar.Advance();
+            }
+            else if(left)
+            {
+                mecanumCar.Turn_Left();
+            }
+            else if(right)
+            {
+                mecanumCar.Turn_Right();
+            }
+            else
+            {
+                mecanumCar.Advance();
+            }
+        }
+
+        delay(10);
+    }
+
+    // ----------------------------------
+    // Fine Alignment
+    // ----------------------------------
+
+    Serial.println("Aligning...");
+
+    alignRobot();
+    verifyAlignment();
+
+    delay(100);
+
+    // ----------------------------------
+    // Open Gripper
+    // ----------------------------------
+
+    Serial.println("Dropping Object");
+
+    for(int pos = 80; pos >= 7; pos--)
+    {
+        myservo.write(pos);
+        delay(20);
+    }
+
+    delay(500);
+
+    Serial.println("===========================");
+    Serial.println("DROP-OFF COMPLETE");
+    Serial.println("===========================");
 }
