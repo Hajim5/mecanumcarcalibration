@@ -76,6 +76,9 @@ void turnLeft90(); //NO0_Button
 void turn180_R();
 void turn180_L();
 
+bool grab(String targetColor);
+void alignRobot();
+
 /*
  * @brief Initializes all hardware used by the robot.
  *
@@ -752,3 +755,78 @@ void turnLeft90()
     delay(400);
 }
 
+#define ALIGN_STABLE_TIME 100   // milliseconds
+
+void alignRobot()
+{
+    Serial.println("Aligning Robot...");
+
+    unsigned long stableStart = 0;
+
+    // Slow speed for fine alignment
+    speed_Upper_L = 35;
+    speed_Lower_L = 35;
+    speed_Upper_R = 30;
+    speed_Lower_R = 30;
+
+    while (true)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        // =====================================
+        // Perfect Alignment (Center Sensor Only)
+        // =====================================
+        if (!left && middle && !right)
+        {
+            // Start timing once alignment is achieved
+            if (stableStart == 0)
+            {
+                stableStart = millis();
+            }
+
+            // Alignment has remained stable
+            if (millis() - stableStart >= ALIGN_STABLE_TIME)
+            {
+                mecanumCar.Stop();
+
+                Serial.println("Robot Aligned");
+
+                delay(100);
+
+                return;
+            }
+        }
+        else
+        {
+            // Lost alignment -> restart timer
+            stableStart = 0;
+            // =====================================
+            // Robot shifted to the RIGHT
+            // (Line appears under LEFT sensor)
+            // =====================================
+            if (left)
+            {
+                mecanumCar.drift_left();
+            }
+            // =====================================
+            // Robot shifted to the LEFT
+            // (Line appears under RIGHT sensor)
+            // =====================================
+            else if (right)
+            {
+                mecanumCar.drift_right();
+            }
+            // =====================================
+            // Lost Line
+            // =====================================
+            else
+            {
+                mecanumCar.Stop();
+            }
+        }
+
+        delay(10);
+    }
+}
