@@ -78,6 +78,8 @@ void turn180_L();
 
 bool grab(String targetColor);
 void alignRobot();
+bool verifyAligment();
+
 
 /*
  * @brief Initializes all hardware used by the robot.
@@ -829,4 +831,25 @@ void alignRobot()
 
         delay(10);
     }
+}
+
+bool verifyAlignment()
+{
+    int goodReadings = 0;
+
+    while(goodReadings < 10)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+
+        if(!left && middle && !right)
+            goodReadings++;
+        else
+            goodReadings = 0;
+
+        delay(10);
+    }
+
+    return true;
 }
