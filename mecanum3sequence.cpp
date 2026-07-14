@@ -429,9 +429,6 @@ bool grab(String targetColor)
 {
     myservo.write(7);
     delay(400);
-    // -----------------------------
-    // NORMAL SPEED
-    // -----------------------------
     const int NORMAL_UL = 37;
     const int NORMAL_LL = 37;
     const int NORMAL_UR = 28;
@@ -461,9 +458,6 @@ bool grab(String targetColor)
         {
             mecanumCar.Advance();
         }
-        // -----------------------------
-        // ULTRASONIC
-        // -----------------------------
         digitalWrite(TRIG_PIN, LOW);
         delayMicroseconds(2);
         digitalWrite(TRIG_PIN, HIGH);
@@ -473,12 +467,8 @@ bool grab(String targetColor)
         if (duration == 0)
             continue;
         long distance = duration * 0.034 / 2;
-        // -----------------------------
-        // DYNAMIC SPEED CONTROL
-        // -----------------------------
         if (distance <= 7)
         {
-            // Another 10% reduction (90% of the 15 cm speed)
             speed_Upper_L = NORMAL_UL * 0.9 * 0.9;
             speed_Lower_L = NORMAL_LL * 0.9 * 0.9;
             speed_Upper_R = NORMAL_UR * 0.9 * 0.9;
@@ -490,8 +480,6 @@ bool grab(String targetColor)
             speed_Lower_L = NORMAL_LL * 0.9;
             speed_Upper_R = NORMAL_UR * 0.9;
             speed_Lower_R = NORMAL_LR * 0.9;
-
-            Serial.println("Approach Mode: Stage 1");
         }
         else
         {
@@ -508,9 +496,6 @@ bool grab(String targetColor)
         }
         delay(30);
     }
-    // -----------------------------
-    // COLOR DETECTION
-    // -----------------------------
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
     redFrequency = pulseIn(SENSOR_OUT, LOW);
@@ -523,11 +508,7 @@ bool grab(String targetColor)
     digitalWrite(S3, HIGH);
     blueFrequency = pulseIn(SENSOR_OUT, LOW);
     delay(20);
-    // -----------------------------
-    // COLOR CLASSIFICATION
-    // -----------------------------
     String detectColour = "UNKNOWN";
-
     if (redFrequency > 4000 &&
         greenFrequency > 4000 &&
         blueFrequency > 4000)
@@ -550,18 +531,17 @@ bool grab(String targetColor)
             detectColour = "RED";
         }
     }
-    // -----------------------------
-    // CHECK TARGET COLOR
-    // -----------------------------
     if (detectColour == targetColor)
     {
-        myservo.write(60);   // Close gripper
-        delay(400);
+        for (int pos = 7; pos <= 60; pos++)
+        {
+        myservo.write(pos);
+        delay(20);
+        }
         return true;
     }
     else
     {
-        Serial.println("Wrong color!");
         myservo.write(7);    // Keep gripper open
         delay(400);
         return false;
