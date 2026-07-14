@@ -344,6 +344,32 @@ bool grab(String targetColor)
     speed_Lower_L = NORMAL_LL;
     speed_Upper_R = NORMAL_UR;
     speed_Lower_R = NORMAL_LR;
+    float distance = 999;
+    unsigned long startTime = millis();
+    int detectCount = 0;
+    while (millis() - startTime < 5000)
+    {
+        distance = getDistanceCM();
+
+        if (distance <= 15)
+        {
+            detectCount++;
+
+            if (detectCount >= 2)
+            {
+                break;      // Stable object detected
+            }
+        }
+        else
+        {
+            detectCount = 0;    // Reset if one reading fails
+        }
+        delay(50);
+    }
+    if (detectCount < 2)
+    {
+        return false;
+    }
     while (true)
     {
         bool left   = digitalRead(SensorLeft);
@@ -365,21 +391,14 @@ bool grab(String targetColor)
         {
             mecanumCar.Advance();
         }
-        digitalWrite(TRIG_PIN, LOW);
-        delayMicroseconds(2);
-        digitalWrite(TRIG_PIN, HIGH);
-        delayMicroseconds(10);
-        digitalWrite(TRIG_PIN, LOW);
-        long duration = pulseIn(ECHO_PIN, HIGH);
-        if (duration == 0)
-            continue;
-        long distance = duration * 0.034 / 2;
+
+        distance = getDistanceCM();
         if (distance <= 7)
         {
-            speed_Upper_L = NORMAL_UL * 0.9 * 0.9;
-            speed_Lower_L = NORMAL_LL * 0.9 * 0.9;
-            speed_Upper_R = NORMAL_UR * 0.9 * 0.9;
-            speed_Lower_R = NORMAL_LR * 0.9 * 0.9;
+            speed_Upper_L = NORMAL_UL * 0.81;
+            speed_Lower_L = NORMAL_LL * 0.81;
+            speed_Upper_R = NORMAL_UR * 0.81;
+            speed_Lower_R = NORMAL_LR * 0.81;
         }
         else if (distance <= 15)
         {
@@ -398,9 +417,9 @@ bool grab(String targetColor)
         if (distance <= 3.8)
         {
             mecanumCar.Stop();
-            Serial.println("Object detected!");
             break;
         }
+
         delay(30);
     }
     digitalWrite(S2, LOW);
@@ -440,17 +459,16 @@ bool grab(String targetColor)
     }
     if (detectColour == targetColor)
     {
-        myservo.write(60);   // Close gripper
-        delay(400);
+        for (int pos = 7; pos <= 60; pos++)
+        {
+            myservo.write(pos);
+            delay(20);
+        }
         return true;
     }
-    else
-    {
-        Serial.println("Wrong color!");
-        myservo.write(7);    // Keep gripper open
-        delay(400);
-        return false;
-    }
+    myservo.write(7);
+    delay(300);
+    return false;
 }
 
 void turnRight180()
