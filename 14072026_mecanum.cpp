@@ -18,9 +18,7 @@ Servo myservo;
 #define S3 6
 #define SENSOR_OUT 8
 #define servo_pin 9
-
 int RECV_PIN = A3;
-
 #define TRIG_PIN 12
 #define ECHO_PIN 13
 
@@ -33,13 +31,7 @@ int RECV_PIN = A3;
 // Choose which sensor should detect the new line
 // Usually the center sensor
 #define STOP_SENSOR SensorMiddle
-
-// =====================
-// NEW COUUNTER & TURN VARIABLES
-// =====================
 bool missionRunning = false;
-// USER ADJUSTABLE JUNCTION ALIGNMENT TIMES (CHANGE THESE)
-
 // =====================
 // MOTOR SPEED
 // =====================
@@ -47,6 +39,9 @@ extern uint8_t speed_Upper_L;
 extern uint8_t speed_Lower_L;
 extern uint8_t speed_Upper_R;
 extern uint8_t speed_Lower_R;
+// =====================
+// Button
+// =====================
 const unsigned long OK_BUTTON = 0xFF02FD;//BLUE   #ok
 const unsigned long NO0_BUTTON = 0xFF30CF;//red  #4
 const unsigned long NO1_BUTTON = 0xFFB04F;//yellow   #3
@@ -79,8 +74,10 @@ bool grab(String targetColor);
 void turnRight180(); //without object
 void turnLeft180(); //with object
 void dropoff(int target);
+
 void moveleft_O(int target); //KIV
 void moveright_O(int target); //KIV
+void turnLeft90_0(); //KIV
 void turnRight90_O(); //KIV
 
 void setup()
@@ -117,7 +114,6 @@ void loop()
                     missionRunning = false;
                 }
                 break;
-
             case NO0_BUTTON:
                 if (!missionRunning)
                 {
@@ -187,8 +183,6 @@ void forward(int target)
             if(!onJunction)
             {
                 counter++;
-                Serial.print("Intersection: ");
-                Serial.println(counter);
                 onJunction = true;
             }
             mecanumCar.Advance();
@@ -234,8 +228,6 @@ void moveback(int target)
             if(!onJunction)
             {
                 counter++;
-                Serial.print("Intersection: ");
-                Serial.println(counter);
                 onJunction = true;
             }
             mecanumCar.Back();
@@ -259,6 +251,8 @@ void moveback(int target)
                 mecanumCar.Back();
         }
     }
+    mecanumCar.Advance();
+    delay(BRAKE);
     mecanumCar.Stop();
     delay(400);
 }
@@ -277,7 +271,6 @@ void moveleft(int target)
         bool middle = digitalRead(SensorMiddle);
         bool right  = digitalRead(SensorRight);
         mecanumCar.L_Move();
-        // Detect center line crossing
         if(left && !middle && !right)
         {
             if(!onMarker)
@@ -295,6 +288,9 @@ void moveleft(int target)
             onMarker = false;
         }
     }
+    mecanumCar.R_Move();
+    delay(BRAKE);
+    mecanum.drift_left();
     mecanumCar.Stop();
     delay(400);
 }
@@ -329,6 +325,9 @@ void moveright(int target)
             onMarker = false;
         }
     }
+    mecanumCar.L_Move();
+    delay(BRAKE);
+    mecanum.drift_right();
     mecanumCar.Stop();
     delay(400);
 }
@@ -337,9 +336,6 @@ bool grab(String targetColor)
 {
     myservo.write(7);
     delay(400);
-    // -----------------------------
-    // NORMAL SPEED
-    // -----------------------------
     const int NORMAL_UL = 37;
     const int NORMAL_LL = 37;
     const int NORMAL_UR = 28;
@@ -369,9 +365,6 @@ bool grab(String targetColor)
         {
             mecanumCar.Advance();
         }
-        // -----------------------------
-        // ULTRASONIC
-        // -----------------------------
         digitalWrite(TRIG_PIN, LOW);
         delayMicroseconds(2);
         digitalWrite(TRIG_PIN, HIGH);
@@ -381,12 +374,8 @@ bool grab(String targetColor)
         if (duration == 0)
             continue;
         long distance = duration * 0.034 / 2;
-        // -----------------------------
-        // DYNAMIC SPEED CONTROL
-        // -----------------------------
         if (distance <= 7)
         {
-            // Another 10% reduction (90% of the 15 cm speed)
             speed_Upper_L = NORMAL_UL * 0.9 * 0.9;
             speed_Lower_L = NORMAL_LL * 0.9 * 0.9;
             speed_Upper_R = NORMAL_UR * 0.9 * 0.9;
@@ -398,8 +387,6 @@ bool grab(String targetColor)
             speed_Lower_L = NORMAL_LL * 0.9;
             speed_Upper_R = NORMAL_UR * 0.9;
             speed_Lower_R = NORMAL_LR * 0.9;
-
-            Serial.println("Approach Mode: Stage 1");
         }
         else
         {
@@ -416,9 +403,6 @@ bool grab(String targetColor)
         }
         delay(30);
     }
-    // -----------------------------
-    // COLOR DETECTION
-    // -----------------------------
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
     redFrequency = pulseIn(SENSOR_OUT, LOW);
@@ -431,11 +415,7 @@ bool grab(String targetColor)
     digitalWrite(S3, HIGH);
     blueFrequency = pulseIn(SENSOR_OUT, LOW);
     delay(20);
-    // -----------------------------
-    // COLOR CLASSIFICATION
-    // -----------------------------
     String detectColour = "UNKNOWN";
-
     if (redFrequency > 4000 &&
         greenFrequency > 4000 &&
         blueFrequency > 4000)
@@ -458,9 +438,6 @@ bool grab(String targetColor)
             detectColour = "RED";
         }
     }
-    // -----------------------------
-    // CHECK TARGET COLOR
-    // -----------------------------
     if (detectColour == targetColor)
     {
         myservo.write(60);   // Close gripper
@@ -570,4 +547,63 @@ void turnLeft180()
     delay(350);   // Tune this for required left shift
     mecanumCar.Stop();
     delay(600);
+}
+
+void dropoff(int target)
+{
+    int counter = 0;
+    bool onJunction = false;
+    const int NORMAL_UL = 50;
+    const int NORMAL_LL = 50;
+    const int NORMAL_UR = 41;
+    const int NORMAL_LR = 41;
+    speed_Upper_L = NORMAL_UL;
+    speed_Lower_L = NORMAL_LL;
+    speed_Upper_R = NORMAL_UR;
+    speed_Lower_R = NORMAL_LR;
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+        if(left && middle && right)
+        {
+            if(!onJunction)
+            {
+                counter++;
+                speed_Upper_L = round(speed_Upper_L * 0.90);
+                speed_Lower_L = round(speed_Lower_L * 0.90);
+                speed_Upper_R = round(speed_Upper_R * 0.90);
+                speed_Lower_R = round(speed_Lower_R * 0.90);
+                onJunction = true;
+            }
+            mecanumCar.Advance();
+        }
+        else
+        {
+            onJunction = false;
+            if(!left && middle && !right)
+                mecanumCar.Advance();
+            else if(left && !middle && !right)
+                mecanumCar.Turn_Left();
+            else if(!left && !middle && right)
+                mecanumCar.Turn_Right();
+            else if(left && middle && !right)
+                mecanumCar.Turn_Left();
+            else if(!left && middle && right)
+                mecanumCar.Turn_Right();
+            else if(left && !middle && right)
+                mecanumCar.Advance();
+            else if(!left && !middle && !right)
+                mecanumCar.Advance();
+        }
+    }
+    mecanumCar.Stop();
+    delay(300);
+    for(int pos = 80; pos >= 7; pos--)
+    {
+        myservo.write(pos);
+        delay(20);
+    }
+    delay(300);
 }
