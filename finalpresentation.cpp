@@ -25,7 +25,7 @@ int RECV_PIN = A3;
 #define ECHO_PIN 13
 
 #define TURN_BLIND_MS        300
-#define TURN_BLIND_MS_LEFT180  450
+#define TURN_BLIND_MS_LEFT180  460
 #define TURN_BLIND_MS_RIGHT180 400
 #define TURN_SPEED           60
 #define FOLLOW_SPEED         40
@@ -185,7 +185,7 @@ void sequence_0()  //block order from left to right: Y,B,R
     turnLeft180();
     forward(5);
 /* if (!grab2("BLUE")) {  ← letak grab function where ultrasonic detect nothing
-        moveback(900); 
+        moveback(600); 
     } */
     moveright(2); // Move to the middle lane from the left lane
     grab("RED");
@@ -216,7 +216,7 @@ void sequence_1() //order from left to right: B,Y,R
     bool targetFound = grab("BLUE"); 
     
     if (!targetFound) {
-        moveback(900); 
+        moveback(600); 
         moveleft(2); // Strafe further left or right depending on where Blue moved
         grab("BLUE"); // Grab the actual Blue block now
         turnLeft180();
@@ -255,10 +255,10 @@ void sequence_1() //order from left to right: B,Y,R
     // Pick in sequence
     searchRed();
     turnRight180();
-    forward(5);
+    forward(4);
     searchBlue();
     turnRight180();
-    forward(5);
+    forward(4);
     searchYellow();
     turnRight180();
     // Mission complete
@@ -1027,6 +1027,6 @@ void dropoff(int target)
         myservo.write(pos);
         delay(20);
     }
-    moveback(900);
+    moveback(600);
     delay(300);
 }
