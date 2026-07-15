@@ -70,7 +70,7 @@ void sequence_1();
 //movement
 //=========================================================
 void forward(int target);
-void moveback(int target);
+void moveback(int durationMs);
 void moveleft(int target);
 void moveright(int target);
 void turnLeft90(); //Tak calibrate & x include lagi
@@ -82,6 +82,9 @@ void dropoff(int target);
 void moveleft_O(int target); //KIV
 void moveright_O(int target); //KIV
 void turnRight90_O(); //KIV
+void searchRed();
+void searchBlue();
+void searchYellow();
 
 void setup()
 {
@@ -156,7 +159,7 @@ void sequence_OK()
     grab("RED");
     turnLeft180();
     forward(2);
-    moveleft_O(2);
+    moveleft(2);
     forward(4);
     dropoff(3);
     delay(5000);
@@ -167,7 +170,7 @@ void sequence_OK()
     grab("YELLOW");
     turnLeft180();
     forward(2);
-    moveleft_O(2);
+    moveleft(2);
     forward(4);
     dropoff(3);
     delay(5000);
@@ -182,13 +185,13 @@ void sequence_0()  //block order from left to right: Y,B,R
     turnLeft180();
     forward(5);
 /* if (!grab2("BLUE")) {  ← letak grab function where ultrasonic detect nothing
-        moveback(2); 
+        moveback(900); 
     } */
     moveright(2); // Move to the middle lane from the left lane
     grab("RED");
     turnLeft180();
     forward(2);
-    moveleft_O(2);
+    moveright(2);
     forward(4);
     dropoff(3);
     delay(5000);
@@ -199,7 +202,7 @@ void sequence_0()  //block order from left to right: Y,B,R
     grab("YELLOW");
     turnLeft180();
     forward(2);
-    moveleft_O(2);
+    moveleft(2);
     forward(4);
     dropoff(3);
     delay(5000);
@@ -208,12 +211,12 @@ void sequence_0()  //block order from left to right: Y,B,R
 
 void sequence_1() //order from left to right: B,Y,R
 {
-    forward(5);
+/*     forward(5);
     // We pass "BLUE" but it will fail color classification because it reads Yellow
     bool targetFound = grab("BLUE"); 
     
     if (!targetFound) {
-        moveback(2); 
+        moveback(900); 
         moveleft(2); // Strafe further left or right depending on where Blue moved
         grab("BLUE"); // Grab the actual Blue block now
         turnLeft180();
@@ -245,7 +248,16 @@ void sequence_1() //order from left to right: B,Y,R
     forward(4);
     dropoff(3);
     delay(5000);
-    turnRight180();
+    turnRight180(); */
+
+/*      // Leave the starting home
+    forward(4);
+    // Pick in sequence
+    searchRed();
+    searchBlue();
+    searchYellow();
+    // Mission complete */
+    moveback(900);
 }
 
 float getDistanceCM() 
@@ -308,49 +320,46 @@ void forward(int target)
     delay(400);
 }
 
-void moveback(int target)
+void moveback(int durationMs)
 {
-    int counter = 0;
-    bool onJunction = false;
-    speed_Upper_L = 40;
-    speed_Lower_L = 45;
-    speed_Upper_R = 30;
-    speed_Lower_R = 35;
-    while(counter < target)
+    const int NORMAL_UL = 40;
+    const int NORMAL_LL = 45;
+    const int NORMAL_UR = 30;
+    const int NORMAL_LR = 35;
+    
+    speed_Upper_L = NORMAL_UL;
+    speed_Lower_L = NORMAL_LL;
+    speed_Upper_R = NORMAL_UR;
+    speed_Lower_R = NORMAL_LR;
+
+    unsigned long startTime = millis();
+
+    // Loop until the specified duration (in milliseconds) has passed
+    while (millis() - startTime < (unsigned long)durationMs)
     {
         bool left   = digitalRead(SensorLeft);
         bool middle = digitalRead(SensorMiddle);
         bool right  = digitalRead(SensorRight);
-        if(left && middle && right)
-        {
-            if(!onJunction)
-            {
-                counter++;
-                Serial.print("Intersection: ");
-                Serial.println(counter);
-                onJunction = true;
-            }
+
+        // Line tracking logic adjusted for driving backward
+        if (!left && middle && !right)
             mecanumCar.Back();
-        }
-        else
-        {
-            onJunction = false;
-            if(!left && middle && !right)
-                mecanumCar.Back();
-            else if(left && !middle && !right)
-                mecanumCar.Turn_Left();
-            else if(!left && !middle && right)
-                mecanumCar.Turn_Right();
-            else if(left && middle && !right)
-                mecanumCar.Turn_Left();
-            else if(!left && middle && right)
-                mecanumCar.Turn_Right();
-            else if(left && !middle && right)
-                mecanumCar.Back();
-            else if(!left && !middle && !right)
-                mecanumCar.Back();
-        }
+        else if (left && !middle && !right)
+            mecanumCar.Turn_Left();
+        else if (!left && !middle && right)
+            mecanumCar.Turn_Right();
+        else if (left && middle && !right)
+            mecanumCar.Turn_Left();
+        else if (!left && middle && right)
+            mecanumCar.Turn_Right();
+        else if (left && !middle && right)
+            mecanumCar.Back();
+        else if (!left && !middle && !right)
+            mecanumCar.Back();
+        else if (left && middle && right)
+            mecanumCar.Back(); // Keep backing up through intersections
     }
+    
     mecanumCar.Stop();
     delay(400);
 }
@@ -425,6 +434,149 @@ void moveright(int target)
     delay(400);
 }
 
+/* bool grab(String targetColor)
+{
+    myservo.write(7);
+    delay(400);
+    // -----------------------------
+    // NORMAL SPEED
+    // -----------------------------
+    const int NORMAL_UL = 37;
+    const int NORMAL_LL = 37;
+    const int NORMAL_UR = 28;
+    const int NORMAL_LR = 29;
+    speed_Upper_L = NORMAL_UL;
+    speed_Lower_L = NORMAL_LL;
+    speed_Upper_R = NORMAL_UR;
+    speed_Lower_R = NORMAL_LR;
+    while (true)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+        if (!left && middle && !right)
+        {
+            mecanumCar.Advance();
+        }
+        else if (left)
+        {
+            mecanumCar.Turn_Left();
+        }
+        else if (right)
+        {
+            mecanumCar.Turn_Right();
+        }
+        else
+        {
+            mecanumCar.Advance();
+        }
+        // -----------------------------
+        // ULTRASONIC
+        // -----------------------------
+        digitalWrite(TRIG_PIN, LOW);
+        delayMicroseconds(2);
+        digitalWrite(TRIG_PIN, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(TRIG_PIN, LOW);
+        long duration = pulseIn(ECHO_PIN, HIGH);
+        if (duration == 0)
+            continue;
+        long distance = duration * 0.034 / 2;
+        // -----------------------------
+        // DYNAMIC SPEED CONTROL
+        // -----------------------------
+        if (distance <= 7)
+        {
+            // Another 10% reduction (90% of the 15 cm speed)
+            speed_Upper_L = NORMAL_UL * 0.9 * 0.9;
+            speed_Lower_L = NORMAL_LL * 0.9 * 0.9;
+            speed_Upper_R = NORMAL_UR * 0.9 * 0.9;
+            speed_Lower_R = NORMAL_LR * 0.9 * 0.9;
+        }
+        else if (distance <= 15)
+        {
+            speed_Upper_L = NORMAL_UL * 0.9;
+            speed_Lower_L = NORMAL_LL * 0.9;
+            speed_Upper_R = NORMAL_UR * 0.9;
+            speed_Lower_R = NORMAL_LR * 0.9;
+
+            Serial.println("Approach Mode: Stage 1");
+        }
+        else
+        {
+            speed_Upper_L = NORMAL_UL;
+            speed_Lower_L = NORMAL_LL;
+            speed_Upper_R = NORMAL_UR;
+            speed_Lower_R = NORMAL_LR;
+        }
+        if (distance <= 3.8)
+        {
+            mecanumCar.Stop();
+            Serial.println("Object detected!");
+            break;
+        }
+        delay(30);
+    }
+    // -----------------------------
+    // COLOR DETECTION
+    // -----------------------------
+    digitalWrite(S2, LOW);
+    digitalWrite(S3, LOW);
+    redFrequency = pulseIn(SENSOR_OUT, LOW);
+    delay(20);
+    digitalWrite(S2, HIGH);
+    digitalWrite(S3, HIGH);
+    greenFrequency = pulseIn(SENSOR_OUT, LOW);
+    delay(20);
+    digitalWrite(S2, LOW);
+    digitalWrite(S3, HIGH);
+    blueFrequency = pulseIn(SENSOR_OUT, LOW);
+    delay(20);
+    // -----------------------------
+    // COLOR CLASSIFICATION
+    // -----------------------------
+    String detectColour = "UNKNOWN";
+
+    if (redFrequency > 4000 &&
+        greenFrequency > 4000 &&
+        blueFrequency > 4000)
+    {
+        detectColour = "UNKNOWN";
+    }
+    else if (blueFrequency < redFrequency &&
+             blueFrequency < greenFrequency)
+    {
+        detectColour = "BLUE";
+    }
+    else if (redFrequency < blueFrequency)
+    {
+        if (abs(redFrequency - greenFrequency) < 250)
+        {
+            detectColour = "YELLOW";
+        }
+        else if (redFrequency < greenFrequency)
+        {
+            detectColour = "RED";
+        }
+    }
+    // -----------------------------
+    // CHECK TARGET COLOR
+    // -----------------------------
+    if (detectColour == targetColor)
+    {
+        myservo.write(60);   // Close gripper
+        delay(400);
+        return true;
+    }
+    else
+    {
+        Serial.println("Wrong color!");
+        myservo.write(7);    // Keep gripper open
+        delay(400);
+        return false;
+    }
+}
+ */
 bool grab(String targetColor)
 {
     myservo.write(7);
@@ -437,8 +589,29 @@ bool grab(String targetColor)
     speed_Lower_L = NORMAL_LL;
     speed_Upper_R = NORMAL_UR;
     speed_Lower_R = NORMAL_LR;
-    float distance = getDistanceCM();
-    if (distance > 15)
+    float distance = 999;
+    unsigned long startTime = millis();
+    int detectCount = 0;
+    while (millis() - startTime < 5000)
+    {
+        distance = getDistanceCM();
+
+        if (distance <= 15)
+        {
+            detectCount++;
+
+            if (detectCount >= 2)
+            {
+                break;      // Stable object detected
+            }
+        }
+        else
+        {
+            detectCount = 0;    // Reset if one reading fails
+        }
+        delay(50);
+    }
+    if (detectCount < 2)
     {
         return false;
     }
@@ -463,13 +636,14 @@ bool grab(String targetColor)
         {
             mecanumCar.Advance();
         }
+
         distance = getDistanceCM();
         if (distance <= 7)
         {
-            speed_Upper_L = NORMAL_UL * 0.9 * 0.9;
-            speed_Lower_L = NORMAL_LL * 0.9 * 0.9;
-            speed_Upper_R = NORMAL_UR * 0.9 * 0.9;
-            speed_Lower_R = NORMAL_LR * 0.9 * 0.9;
+            speed_Upper_L = NORMAL_UL * 0.81;
+            speed_Lower_L = NORMAL_LL * 0.81;
+            speed_Upper_R = NORMAL_UR * 0.81;
+            speed_Lower_R = NORMAL_LR * 0.81;
         }
         else if (distance <= 15)
         {
@@ -490,6 +664,7 @@ bool grab(String targetColor)
             mecanumCar.Stop();
             break;
         }
+
         delay(30);
     }
     digitalWrite(S2, LOW);
@@ -635,4 +810,209 @@ void turnLeft180()
     delay(350);   // Tune this for required left shift
     mecanumCar.Stop();
     delay(600);
+}
+
+//additional code
+void searchRed()
+{
+    // --------------------------
+    // Location 2
+    // --------------------------
+    forward(1);
+    if (grab("RED"))
+    {
+        turnLeft180();
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    forward(2);
+    turnRight180();
+    // --------------------------
+    // Location 1
+    // --------------------------
+    moveright(2);
+    forward(1);
+    if (grab("RED"))
+    {
+        turnLeft180();
+        moveright(2);
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    moveright(2);
+    forward(2);
+    turnRight180();
+    // --------------------------
+    // Location 3
+    // --------------------------
+    moveleft(2);
+    forward(1);
+    if (grab("RED"))
+    {
+        turnLeft180();
+        moveleft(2);
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    moveleft(2);
+    forward(2);
+}
+
+void searchBlue()
+{
+    forward(1);
+    if (grab("BLUE"))
+    {
+        turnLeft180();
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    forward(2);
+    turnRight180();
+    moveright(2);
+    forward(1);
+    if (grab("BLUE"))
+    {
+        turnLeft180();
+        moveright(2);
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    moveright(2);
+    forward(2);
+    turnRight180();
+    moveleft(2);
+    forward(1);
+    if (grab("BLUE"))
+    {
+        turnLeft180();
+        moveleft(2);
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    moveleft(2);
+    forward(2);
+}
+
+void searchYellow()
+{
+    forward(1);
+    if (grab("YELLOW"))
+    {
+        turnLeft180();
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    forward(2);
+    turnRight180();
+    moveright(2);
+    forward(1);
+    if (grab("YELLOW"))
+    {
+        turnLeft180();
+        moveright(2);
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    moveright(2);
+    forward(2);
+    turnRight180();
+    moveleft(2);
+    forward(1);
+    if (grab("YELLOW"))
+    {
+        turnLeft180();
+        moveleft(2);
+        forward(2);
+        dropoff(5);
+        return;
+    }
+    else {moveback(900);}
+    turnRight180();
+    moveleft(2);
+    forward(2);
+}
+
+void dropoff(int target)
+{
+    int counter = 0;
+    bool onJunction = false;
+    const int NORMAL_UL = 50;
+    const int NORMAL_LL = 50;
+    const int NORMAL_UR = 41;
+    const int NORMAL_LR = 41;
+    speed_Upper_L = NORMAL_UL;
+    speed_Lower_L = NORMAL_LL;
+    speed_Upper_R = NORMAL_UR;
+    speed_Lower_R = NORMAL_LR;
+    while(counter < target)
+    {
+        bool left   = digitalRead(SensorLeft);
+        bool middle = digitalRead(SensorMiddle);
+        bool right  = digitalRead(SensorRight);
+        if(left && middle && right)
+        {
+            if(!onJunction)
+            {
+                counter++;
+                speed_Upper_L = round(speed_Upper_L * 0.90);
+                speed_Lower_L = round(speed_Lower_L * 0.90);
+                speed_Upper_R = round(speed_Upper_R * 0.90);
+                speed_Lower_R = round(speed_Lower_R * 0.90);
+                onJunction = true;
+            }
+            mecanumCar.Advance();
+        }
+        else
+        {
+            onJunction = false;
+            if(!left && middle && !right)
+                mecanumCar.Advance();
+            else if(left && !middle && !right)
+                mecanumCar.Turn_Left();
+            else if(!left && !middle && right)
+                mecanumCar.Turn_Right();
+            else if(left && middle && !right)
+                mecanumCar.Turn_Left();
+            else if(!left && middle && right)
+                mecanumCar.Turn_Right();
+            else if(left && !middle && right)
+                mecanumCar.Advance();
+            else if(!left && !middle && !right)
+                mecanumCar.Advance();
+        }
+    }
+    mecanumCar.Stop();
+    delay(300);
+    for(int pos = 80; pos >= 7; pos--)
+    {
+        myservo.write(pos);
+        delay(20);
+    }
+    moveback(900);
+    delay(300);
 }
