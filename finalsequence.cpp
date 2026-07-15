@@ -838,30 +838,30 @@ void searchRed()
     // --------------------------
     // Location 1
     // --------------------------
-    moveright(2);
+    moveright(23);
     forward(1);
     if (grab("RED"))
     {
         turnLeft180();
-        moveright(2);
+        moveright(3);
         forward(2);
         dropoff(5);
         return;
     }
     else {moveback(900);
     turnRight180();
-    moveright(2);
+    moveright(3);
     forward(2);
     turnRight180();}
     // --------------------------
     // Location 3
     // --------------------------
-    moveleft(2);
+    moveleft(3);
     forward(1);
     if (grab("RED"))
     {
         turnLeft180();
-        moveleft(2);
+        moveleft(3);
         forward(2);
         dropoff(5);
         return;
@@ -869,7 +869,7 @@ void searchRed()
     }
     else {moveback(900);
     turnRight180();
-    moveleft(2);
+    moveleft(3);
     forward(2);
     turnRight180();}
 }
@@ -889,12 +889,12 @@ void searchBlue()
     turnRight180();
     forward(2);
     turnRight180();}
-    moveright(2);
+    moveright(3);
     forward(1);
     if (grab("BLUE"))
     {
         turnLeft180();
-        moveright(2);
+        moveright(3);
         forward(2);
         dropoff(5);
         return;
@@ -902,15 +902,15 @@ void searchBlue()
     }
     else {moveback(900);
     turnRight180();
-    moveright(2);
+    moveright(3);
     forward(2);
     turnRight180();}
-    moveleft(2);
+    moveleft(3);
     forward(1);
     if (grab("BLUE"))
     {
         turnLeft180();
-        moveleft(2);
+        moveleft(3);
         forward(2);
         dropoff(5);
         return;
@@ -918,7 +918,7 @@ void searchBlue()
     }
     else {moveback(900);
     turnRight180();
-    moveleft(2);
+    moveleft(3);
     forward(2);
     turnRight180();}
 }
@@ -938,12 +938,12 @@ void searchYellow()
     turnRight180();
     forward(2);
     turnRight180();}
-    moveright(2);
+    moveright(3);
     forward(1);
     if (grab("YELLOW"))
     {
         turnLeft180();
-        moveright(2);
+        moveright(3);
         forward(2);
         dropoff(5);
         return;
@@ -951,15 +951,15 @@ void searchYellow()
     }
     else {moveback(900);
     turnRight180();
-    moveright(2);
+    moveright(3);
     forward(2);
     turnRight180();}
-    moveleft(2);
+    moveleft(3);
     forward(1);
     if (grab("YELLOW"))
     {
         turnLeft180();
-        moveleft(2);
+        moveleft(3);
         forward(2);
         dropoff(5);
         return;
@@ -967,7 +967,7 @@ void searchYellow()
     }
     else {moveback(900);
     turnRight180();
-    moveleft(2);
+    moveleft(3);
     forward(2);
     turnRight180();}
 }
