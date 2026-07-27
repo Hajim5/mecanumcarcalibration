@@ -140,9 +140,9 @@ results/
 
 ## 👨‍💻 Author
 
-**Hajim5**
-**syamilshafie22-tech**
-**SyukranSJ**
+- **Hajim5**
+- **syamilshafie22-tech**
+- **SyukranSJ**
 
 Research & Development on Mecanum Wheel Motion Calibration
 
