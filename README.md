@@ -1,123 +1,151 @@
-# MecanumCarCalibration
+# 🤖 Mecanum Car Calibration
 
-## Overview
-
-**MecanumCarCalibration** is an R&D project to calibrate a mecanum-wheeled mobile robot by analyzing movement offsets and tuning individual wheel PWM values. Each movement is tested against its expected trajectory, and wheel speeds are adjusted to compensate for drift, resulting in more accurate and repeatable autonomous navigation.
+> Research & Development project for calibrating a mecanum-wheeled mobile robot using a grid map to achieve accurate and repeatable autonomous movement.
 
 ---
 
-## Objectives
+## 📖 Overview
 
-- Verify the movement theory of a mecanum drive through practical testing.
-- Identify movement offsets in each direction.
-- Calibrate individual motor PWM values.
-- Improve movement accuracy for grid-based navigation.
-- Reduce accumulated positioning errors.
+**Mecanum Car Calibration** is an R&D project that focuses on calibrating a mecanum-wheeled mobile robot by testing its movements on a predefined **grid map**. The robot follows the grid paths while individual wheel PWM values are adjusted to minimize movement errors and improve navigation accuracy.
+
+Each movement is repeatedly tested, analyzed, and calibrated until the robot can follow the intended path consistently.
 
 ---
 
-## Movement Calibration
+## 🎯 Objectives
 
-The following movements are calibrated:
-
-- Forward
-- Backward
-- Left Strafe
-- Right Strafe
-- Forward Left
-- Forward Right
-- Backward Left
-- Backward Right
-- Rotate Left (CCW)
-- Rotate Right (CW)
+- 📌 Validate mecanum wheel movement on a grid map.
+- 📌 Identify movement offsets for each motion.
+- 📌 Calibrate individual motor PWM values.
+- 📌 Improve movement repeatability.
+- 📌 Reduce accumulated navigation errors.
+- 📌 Build a reference for future autonomous robot development.
 
 ---
 
-## Calibration Method
+## 🗺️ Test Environment
 
-1. Execute a predefined movement.
-2. Observe the robot trajectory.
-3. Measure the movement offset.
-4. Determine which wheel(s) require compensation.
-5. Adjust the PWM values.
-6. Repeat until the robot follows the intended path.
+All experiments are performed using a **grid map**.
 
----
+<div align="center">
 
-## Example
+**gridmap.jpg**
 
-### Forward Movement
+Robot movements are evaluated based on how accurately they follow the grid.
 
-**Expected Result**
-
-```
-Start
-  │
-  │
-  │
-  ▼
-Finish
-```
-
-**Actual Result**
-
-```
-Start
-  │
-   \
-    \
-     ▼
-   Finish
-```
-
-The robot drifts to the **right**.
-
-Possible correction:
-
-- Increase PWM of the weaker wheel(s), or
-- Reduce PWM of the stronger wheel(s),
-
-until the robot moves straight.
+</div>
 
 ---
 
-## Repository Structure
+## 🚗 Movement Calibration
 
-```
+The following movements are calibrated throughout this project:
+
+- ⬆️ Forward
+- ⬇️ Backward
+- ↩️ Turn Left (90°)
+- ↪️ Turn Right (90°)
+- 🔄 Turn 180°
+
+Each movement is tested independently to determine the appropriate PWM compensation for every motor.
+
+---
+
+## 🧪 Calibration Procedure
+
+For every movement:
+
+1. ▶️ Execute the movement.
+2. 👀 Observe the robot trajectory.
+3. 📏 Measure any movement offset.
+4. 🔧 Adjust the corresponding wheel PWM values.
+5. 🔁 Repeat the experiment.
+6. ✅ Record the final calibrated PWM values.
+
+---
+
+## 📂 Project Structure
+
+```text
 MecanumCarCalibration/
 │
 ├── README.md
+│
 ├── src/
 │   ├── main.cpp
 │   ├── mecanum.cpp
 │   └── mecanum.h
 │
 ├── calibration/
+│   ├── blank_Template.md
 │   ├── forward.md
 │   ├── backward.md
-│   ├── left_strafe.md
-│   ├── right_strafe.md
-│   └── rotation.md
+│   ├── turnLeft.md
+│   ├── turnRight.md
+│   └── turn180.md
 │
-└── results/
-    ├── images/
-    └── videos/
+├── results/
+│   ├── images/
+│   └── videos/
+│
+└── gridmap.jpg
 ```
 
 ---
 
-## Future Improvements
+## 📑 Experiment Template
 
-- Automatic PID-based calibration
-- IMU-assisted heading correction
-- Encoder-based distance calibration
-- Vision-assisted localization
-- Automatic PWM tuning algorithm
+Every calibration experiment follows the same documentation format.
+
+The experiment template can be found in:
+
+```text
+calibration/
+└── blank_Template.md
+```
+
+Use this template to record:
+
+- Experiment objective
+- Initial PWM values
+- Test observations
+- Offset direction
+- PWM adjustments
+- Final calibrated values
+- Conclusions
 
 ---
 
-## Author
+## 📊 Results
 
-Ahmad Hazim
+The calibration results for every experiment are stored inside the **results** folder.
+
+```text
+results/
+├── images/
+└── videos/
+```
+
+These files provide visual evidence of the robot's movement before and after calibration.
+
+---
+
+## 🚀 Future Improvements
+
+- 🎯 PID-based heading correction
+- 🧭 IMU-assisted orientation control
+- ⚙️ Wheel encoder feedback
+- 📷 Vision-based localization
+- 🤖 Automatic PWM optimization
+- 📈 Automated calibration algorithm
+
+---
+
+## 👨‍💻 Author
+
+**Ahmad Hazim**
 
 Research & Development on Mecanum Wheel Motion Calibration
+
+---
+⭐ This repository documents the calibration process of a mecanum mobile robot and serves as a reference for future robotics research and autonomous navigation projects.
