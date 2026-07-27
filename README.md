@@ -72,21 +72,17 @@ MecanumCarCalibration/
 ├── README.md
 │
 ├── src/
-│   ├── main.cpp
-│   ├── mecanum.cpp
-│   └── mecanum.h
+│   ├── mecanum_robot_basic_movement.cpp
 │
 ├── calibration/
-│   ├── blank_Template.md
-│   ├── forward.md
-│   ├── backward.md
-│   ├── turnLeft.md
-│   ├── turnRight.md
-│   └── turn180.md
+│   ├── Mecanum_Movement_Calibration_RnD_Blank_Template.pdf
+│   ├── Turn_Calibration_RnD_Blank_Template.pdf
 │
 ├── results/
-│   ├── images/
-│   └── videos/
+│   ├── 1)forwardmovement.png
+│   └── 2)backwardmovement.png
+│   ├── 3)turn180(left_direction).png
+│   └── 4)turn180(right_direction).png
 │
 └── gridmap.jpg
 ```
@@ -102,6 +98,8 @@ The experiment template can be found in:
 ```text
 calibration/
 └── blank_Template.md
+│   ├── Mecanum_Movement_Calibration_RnD_Blank_Template.pdf
+│   ├── Turn_Calibration_RnD_Blank_Template.pdf
 ```
 
 Use this template to record:
@@ -122,12 +120,11 @@ The calibration results for every experiment are stored inside the **results** f
 
 ```text
 results/
-├── images/
-└── videos/
+│   ├── 1)forwardmovement.png
+│   └── 2)backwardmovement.png
+│   ├── 3)turn180(left_direction).png
+│   └── 4)turn180(right_direction).png
 ```
-
-These files provide visual evidence of the robot's movement before and after calibration.
-
 ---
 
 ## 🚀 Future Improvements
@@ -143,7 +140,9 @@ These files provide visual evidence of the robot's movement before and after cal
 
 ## 👨‍💻 Author
 
-**Ahmad Hazim**
+**Hajim5**
+**syamilshafie22-tech**
+**SyukranSJ**
 
 Research & Development on Mecanum Wheel Motion Calibration
 
